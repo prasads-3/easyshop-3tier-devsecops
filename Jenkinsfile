@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent any
 
@@ -32,6 +33,15 @@ pipeline {
                 sh 'npm run build'
             }
         }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    def scannerHome = tool 'SonarQube Scanner'
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
     }
 
     post {
@@ -48,3 +58,4 @@ pipeline {
         }
     }
 }
+```
