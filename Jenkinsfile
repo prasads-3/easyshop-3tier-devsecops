@@ -37,21 +37,33 @@ pipeline {
             steps {
                 withSonarQubeEnv('Sonar') {
                     script {
-                        def scannerHome = tool 'SonarQube Scanner'
+                        def scannerHome = tool 'sonar'
                         sh "${scannerHome}/bin/sonar-scanner"
                     }
                 }
+            }
+        }
+
+        stage('Trivy Filesystem Scan') {
+            steps {
+                sh '''
+                    trivy fs \
+                    --scanners vuln,secret \
+                    --severity HIGH,CRITICAL \
+                    --exit-code 1 \
+                    .
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'CI Pipeline completed successfully!'
+            echo 'DevSecOps CI Pipeline completed successfully!'
         }
 
         failure {
-            echo 'CI Pipeline failed. Check the stage logs.'
+            echo 'DevSecOps CI Pipeline failed. Check the stage logs.'
         }
 
         always {
