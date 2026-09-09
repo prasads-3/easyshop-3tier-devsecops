@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -56,21 +55,19 @@ pipeline {
                 '''
             }
         }
-    }
 
-    stage('Docker Build') {
-    steps {
-        script {
-            def imageTag = "easyshop:${env.BUILD_NUMBER}"
+        stage('Docker Build') {
+            steps {
+                script {
+                    def imageTag = "easyshop:${env.BUILD_NUMBER}"
 
-            sh """
-                docker build -t ${imageTag} .
-            """
+                    sh """
+                        docker build -t ${imageTag} .
+                    """
+                }
+            }
         }
     }
-}
-
-
 
     post {
         success {
