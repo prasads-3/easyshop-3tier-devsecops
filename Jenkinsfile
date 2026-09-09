@@ -58,6 +58,20 @@ pipeline {
         }
     }
 
+    stage('Docker Build') {
+    steps {
+        script {
+            def imageTag = "easyshop:${env.BUILD_NUMBER}"
+
+            sh """
+                docker build -t ${imageTag} .
+            """
+        }
+    }
+}
+
+
+
     post {
         success {
             echo 'DevSecOps CI Pipeline completed successfully!'
