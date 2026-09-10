@@ -7,6 +7,12 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
+    environment {
+        AWS_REGION = 'eu-west-1'
+        ECR_REGISTRY = '064990711811.dkr.ecr.eu-west-1.amazonaws.com'
+        ECR_REPOSITORY = 'easyshop'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -58,13 +64,10 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                script {
-                    def imageTag = "easyshop:${env.BUILD_NUMBER}"
-
-                    sh """
-                        docker build -t ${imageTag} .
-                    """
-                }
+                sh '''
+                    docker build \
+                    -t ${ECR_REPOSITORY}:${BUILD_NUMBER} .
+                '''
             }
         }
 
@@ -75,22 +78,40 @@ pipeline {
                      credentialsId: 'aws-ecr']
                 ]) {
                     sh '''
-                        aws ecr get-login-password --region eu-west-1 | \
-                        docker login --username AWS --password-stdin \
-                        064990711811.dkr.ecr.eu-west-1.amazonaws.com
+                        aws ecr get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS --password-stdin ${ECR_REGISTRY}
                     '''
                 }
+            }
+        }
+
+        stage('Tag Docker Image') {
+            steps {
+                sh '''
+                    docker tag \
+                    ${ECR_REPOSITORY}:${BUILD_NUMBER} \
+                    ${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}
+                '''
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                sh '''
+                    docker push \
+                    ${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'DevSecOps CI Pipeline completed successfully!'
+            echo 'DevSecOps CI/CD pipeline completed successfully!'
         }
 
         failure {
-            echo 'DevSecOps CI Pipeline failed. Check the stage logs.'
+            echo 'DevSecOps pipeline failed. Check the stage logs.'
         }
 
         always {
