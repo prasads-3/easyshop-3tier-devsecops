@@ -67,6 +67,17 @@ pipeline {
                 }
             }
         }
+
+        stage('AWS Credentials Test') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-ecr']
+                ]) {
+                    sh 'aws sts get-caller-identity'
+                }
+            }
+        }
     }
 
     post {
