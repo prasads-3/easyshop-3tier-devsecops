@@ -68,13 +68,17 @@ pipeline {
             }
         }
 
-        stage('AWS Credentials Test') {
+        stage('Login to Amazon ECR') {
             steps {
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding',
                      credentialsId: 'aws-ecr']
                 ]) {
-                    sh 'aws sts get-caller-identity'
+                    sh '''
+                        aws ecr get-login-password --region eu-west-1 | \
+                        docker login --username AWS --password-stdin \
+                        064990711811.dkr.ecr.eu-west-1.amazonaws.com
+                    '''
                 }
             }
         }
