@@ -1,0 +1,3 @@
+NAME                        CPU(cores)   MEMORY(bytes)   
+easyshop-7b754f9c98-4lq6j   26m          80Mi            
+easyshop-7b754f9c98-ql2fq   33m          39Mi            

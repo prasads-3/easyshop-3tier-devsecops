@@ -92,4 +92,6 @@ terraform.tfstate.backup
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terra-key.pub
-terra-key
+terra-keyiam_policy.json
+Jenkinsfile.save
+Jenkinsfile\
