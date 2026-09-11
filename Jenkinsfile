@@ -7,10 +7,19 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
+    triggers {
+        githubPush()
+    }
+
     environment {
-        AWS_REGION = 'eu-west-1'
-        ECR_REGISTRY = '064990711811.dkr.ecr.eu-west-1.amazonaws.com'
+        AWS_REGION     = 'eu-west-1'
+        ECR_REGISTRY   = '064990711811.dkr.ecr.eu-west-1.amazonaws.com'
         ECR_REPOSITORY = 'easyshop'
+        EKS_CLUSTER    = 'easyshop-eks'
+        K8S_NAMESPACE  = 'easyshop'
+        KUBECONFIG     = "${WORKSPACE}/kubeconfig"
+        IMAGE_TAG      = "${BUILD_NUMBER}"
+        ECR_IMAGE      = "${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}"
     }
 
     stages {
@@ -44,7 +53,10 @@ pipeline {
                 withSonarQubeEnv('Sonar') {
                     script {
                         def scannerHome = tool 'SonarQube Scanner'
-                        sh "${scannerHome}/bin/sonar-scanner"
+
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner
+                        """
                     }
                 }
             }
@@ -54,10 +66,10 @@ pipeline {
             steps {
                 sh '''
                     trivy fs \
-                    --scanners vuln,secret \
-                    --severity HIGH,CRITICAL \
-                    --exit-code 0 \
-                    .
+                      --scanners vuln,secret \
+                      --severity HIGH,CRITICAL \
+                      --exit-code 0 \
+                      .
                 '''
             }
         }
@@ -66,7 +78,8 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                    -t ${ECR_REPOSITORY}:${BUILD_NUMBER} .
+                      -t ${ECR_REPOSITORY}:${BUILD_NUMBER} \
+                      .
                 '''
             }
         }
@@ -78,8 +91,11 @@ pipeline {
                      credentialsId: 'aws-ecr']
                 ]) {
                     sh '''
-                        aws ecr get-login-password --region ${AWS_REGION} | \
-                        docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        aws ecr get-login-password \
+                          --region ${AWS_REGION} |
+                        docker login \
+                          --username AWS \
+                          --password-stdin ${ECR_REGISTRY}
                     '''
                 }
             }
@@ -89,8 +105,8 @@ pipeline {
             steps {
                 sh '''
                     docker tag \
-                    ${ECR_REPOSITORY}:${BUILD_NUMBER} \
-                    ${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}
+                      ${ECR_REPOSITORY}:${BUILD_NUMBER} \
+                      ${ECR_IMAGE}
                 '''
             }
         }
@@ -98,20 +114,213 @@ pipeline {
         stage('Push Image to ECR') {
             steps {
                 sh '''
-                    docker push \
-                    ${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}
+                    docker push ${ECR_IMAGE}
                 '''
+            }
+        }
+
+        stage('Configure EKS Access') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-ecr']
+                ]) {
+                    sh '''
+                        aws eks update-kubeconfig \
+                          --region ${AWS_REGION} \
+                          --name ${EKS_CLUSTER} \
+                          --kubeconfig ${KUBECONFIG}
+
+                        export KUBECONFIG=${KUBECONFIG}
+
+                        echo "===== EKS CLUSTER ====="
+                        kubectl cluster-info
+
+                        echo "===== EKS NODES ====="
+                        kubectl get nodes
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy Kubernetes Resources') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-ecr']
+                ]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG}
+
+                        echo "===== Apply Deployment ====="
+                        kubectl apply \
+                          -f k8s-deployment.yaml
+
+                        echo "===== Apply HPA ====="
+                        kubectl apply \
+                          -f easyshop-hpa.yaml
+
+                        echo "===== Apply Ingress ====="
+                        kubectl apply \
+                          -f easyshop-ingress.yaml
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy New Image') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-ecr']
+                ]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG}
+
+                        kubectl -n ${K8S_NAMESPACE} \
+                          set image deployment/easyshop \
+                          easyshop=${ECR_IMAGE}
+
+                        kubectl -n ${K8S_NAMESPACE} \
+                          rollout status deployment/easyshop \
+                          --timeout=180s
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-ecr']
+                ]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG}
+
+                        echo "===== DEPLOYMENT ====="
+                        kubectl get deployment easyshop \
+                          -n ${K8S_NAMESPACE}
+
+                        echo "===== PODS ====="
+                        kubectl get pods \
+                          -n ${K8S_NAMESPACE} \
+                          -o wide
+
+                        echo "===== SERVICE ====="
+                        kubectl get svc \
+                          -n ${K8S_NAMESPACE}
+
+                        echo "===== HPA ====="
+                        kubectl get hpa \
+                          -n ${K8S_NAMESPACE}
+
+                        echo "===== INGRESS ====="
+                        kubectl get ingress \
+                          -n ${K8S_NAMESPACE}
+                    '''
+                }
+            }
+        }
+
+        stage('Verify HPA Metrics') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-ecr']
+                ]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG}
+
+                        echo "===== HPA DETAILS ====="
+                        kubectl describe hpa easyshop \
+                          -n ${K8S_NAMESPACE}
+
+                        echo "===== POD METRICS ====="
+                        kubectl top pods \
+                          -n ${K8S_NAMESPACE} || true
+                    '''
+                }
             }
         }
     }
 
     post {
+
         success {
-            echo 'DevSecOps CI/CD pipeline completed successfully!'
+            emailext(
+                to: 'developerprasad479@gmail.com',
+                subject: "✅ SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Hello Prasad,
+
+EasyShop DevSecOps CI/CD pipeline completed successfully.
+
+Job:
+${env.JOB_NAME}
+
+Build:
+#${env.BUILD_NUMBER}
+
+Status:
+SUCCESS
+
+Docker Image:
+${env.ECR_IMAGE}
+
+EKS Cluster:
+${env.EKS_CLUSTER}
+
+Namespace:
+${env.K8S_NAMESPACE}
+
+Deployment:
+easyshop
+
+HPA:
+1-10 replicas
+
+The application was successfully deployed to Amazon EKS.
+
+Jenkins:
+${env.BUILD_URL}
+
+Regards,
+Jenkins CI/CD
+"""
+            )
         }
 
         failure {
-            echo 'DevSecOps pipeline failed. Check the stage logs.'
+            emailext(
+                to: 'developerprasad479@gmail.com',
+                subject: "❌ FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Hello Prasad,
+
+EasyShop DevSecOps CI/CD pipeline FAILED.
+
+Job:
+${env.JOB_NAME}
+
+Build:
+#${env.BUILD_NUMBER}
+
+Status:
+FAILED
+
+EKS Cluster:
+${env.EKS_CLUSTER}
+
+Please check the Jenkins console log.
+
+Jenkins:
+${env.BUILD_URL}
+
+Regards,
+Jenkins CI/CD
+"""
+            )
         }
 
         always {
@@ -119,4 +328,3 @@ pipeline {
         }
     }
 }
-
