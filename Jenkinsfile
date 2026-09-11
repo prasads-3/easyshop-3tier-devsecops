@@ -12,14 +12,14 @@ pipeline {
     }
 
     environment {
-        AWS_REGION     = 'eu-west-1'
-        ECR_REGISTRY   = '064990711811.dkr.ecr.eu-west-1.amazonaws.com'
-        ECR_REPOSITORY = 'easyshop'
-        EKS_CLUSTER    = 'easyshop-eks'
-        K8S_NAMESPACE  = 'easyshop'
-        KUBECONFIG     = "${WORKSPACE}/kubeconfig"
-        IMAGE_TAG      = "${BUILD_NUMBER}"
-        ECR_IMAGE      = "${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}"
+        AWS_REGION      = 'eu-west-1'
+        ECR_REGISTRY    = '064990711811.dkr.ecr.eu-west-1.amazonaws.com'
+        ECR_REPOSITORY  = 'easyshop'
+        EKS_CLUSTER     = 'easyshop-eks'
+        K8S_NAMESPACE   = 'easyshop'
+        KUBECONFIG      = "${WORKSPACE}/kubeconfig"
+        IMAGE_TAG       = "${BUILD_NUMBER}"
+        ECR_IMAGE       = "${ECR_REGISTRY}/${ECR_REPOSITORY}:${BUILD_NUMBER}"
     }
 
     stages {
@@ -152,15 +152,19 @@ pipeline {
                     sh '''
                         export KUBECONFIG=${KUBECONFIG}
 
-                        echo "===== Apply Deployment ====="
+                        echo "===== APPLY DEPLOYMENT ====="
                         kubectl apply \
                           -f k8s-deployment.yaml
 
-                        echo "===== Apply HPA ====="
+                        echo "===== APPLY SERVICE ====="
+                        kubectl apply \
+                          -f easyshop-service.yaml
+
+                        echo "===== APPLY HPA ====="
                         kubectl apply \
                           -f easyshop-hpa.yaml
 
-                        echo "===== Apply Ingress ====="
+                        echo "===== APPLY INGRESS ====="
                         kubectl apply \
                           -f easyshop-ingress.yaml
                     '''
@@ -177,9 +181,13 @@ pipeline {
                     sh '''
                         export KUBECONFIG=${KUBECONFIG}
 
+                        echo "===== UPDATE IMAGE ====="
+
                         kubectl -n ${K8S_NAMESPACE} \
                           set image deployment/easyshop \
                           easyshop=${ECR_IMAGE}
+
+                        echo "===== ROLLOUT STATUS ====="
 
                         kubectl -n ${K8S_NAMESPACE} \
                           rollout status deployment/easyshop \
@@ -250,7 +258,7 @@ pipeline {
         success {
             emailext(
                 to: 'developerprasad479@gmail.com',
-                subject: "✅ SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
 Hello Prasad,
 
@@ -294,7 +302,7 @@ Jenkins CI/CD
         failure {
             emailext(
                 to: 'developerprasad479@gmail.com',
-                subject: "❌ FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
 Hello Prasad,
 
@@ -312,7 +320,7 @@ FAILED
 EKS Cluster:
 ${env.EKS_CLUSTER}
 
-Please check the Jenkins console log.
+Please check the Jenkins console output.
 
 Jenkins:
 ${env.BUILD_URL}
