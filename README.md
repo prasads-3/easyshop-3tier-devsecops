@@ -286,4 +286,96 @@ The ECR repository contains the container images used by the EasyShop Kubernetes
 
 ---
 
+## ☸️ Amazon EKS — Kubernetes Runtime Platform
+
+Amazon Elastic Kubernetes Service (Amazon EKS) provides the managed Kubernetes platform used to run the EasyShop application workloads on AWS.
+
+The application containers published to **Amazon ECR** are deployed into the EKS cluster, where Kubernetes manages workload scheduling, service connectivity, application availability, and horizontal scaling.
+
+### 🧩 EKS Deployment Architecture
+
+```text
+                 Amazon EKS
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+          ▼                     ▼
+     Kubernetes            Compute Resources
+      Workloads             / Worker Nodes
+          │                     │
+          └──────────┬──────────┘
+                     │
+                     ▼
+              EasyShop Pods
+                     │
+          ┌──────────┼──────────┐
+          │          │          │
+          ▼          ▼          ▼
+       Service    Ingress      HPA
+          │          │          │
+          └──────────┼──────────┘
+                     ▼
+              AWS ALB / Internet
+```
+
+### ☁️ EKS Cluster Overview
+
+The EasyShop application is deployed on an **Amazon EKS cluster in the `eu-west-1` (Ireland) AWS region**.
+
+<p align="center">
+  <img src="./screenshots/08-eks-cluster.png" alt="EasyShop Amazon EKS Cluster" width="100%">
+</p>
+
+> **Amazon EKS acts as the Kubernetes runtime platform, while Amazon ECR provides the container images consumed by the application workloads.**
+
+### 🖥️ EKS Compute Resources
+
+The cluster compute resources provide the runtime capacity required to execute the EasyShop Kubernetes workloads.
+
+<p align="center">
+  <img src="./screenshots/09-eks-compute.png" alt="EasyShop Amazon EKS Compute Resources" width="100%">
+</p>
+
+### ⚙️ What EKS Manages
+
+| Kubernetes Layer      | Responsibility                                    |
+| --------------------- | ------------------------------------------------- |
+| **Pods**              | Run the EasyShop application containers           |
+| **Deployments**       | Maintain the desired application replica state    |
+| **Services**          | Provide stable communication between workloads    |
+| **Ingress**           | Route external HTTP/HTTPS traffic                 |
+| **HPA**               | Dynamically adjust application replicas           |
+| **Compute Resources** | Provide runtime capacity for Kubernetes workloads |
+
+### 🔄 ECR → EKS Deployment Flow
+
+```text
+Docker Image
+     │
+     ▼
+Amazon ECR
+     │
+     │  Image Pull
+     ▼
+Amazon EKS
+     │
+     ▼
+Kubernetes Deployment
+     │
+     ▼
+EasyShop Pods
+     │
+     ├── Service
+     ├── Ingress
+     └── HPA
+```
+
+### 🚀 Why Amazon EKS?
+
+Amazon EKS provides the Kubernetes foundation for the project while integrating the application runtime with AWS-native services such as **IAM, networking, load balancing, and container registry**.
+
+This architecture enables a scalable and repeatable container deployment model while keeping the application configuration managed through Kubernetes manifests.
+
+---
+
 
