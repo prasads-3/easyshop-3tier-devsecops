@@ -254,7 +254,7 @@ Amazon EKS
 The EasyShop application uses a private Amazon ECR repository to store and manage its container images.
 
 <p align="center">
-  <img src="./screenshots/05-ecr-repository.png" alt="Amazon ECR EasyShop Repository" width="100%">
+  <img src="./screenshots/06-ecr-repository.png" alt="Amazon ECR EasyShop Repository" width="100%">
 </p>
 
 ### Container Images
@@ -262,7 +262,7 @@ The EasyShop application uses a private Amazon ECR repository to store and manag
 The ECR repository contains the container images used by the EasyShop Kubernetes deployment.
 
 <p align="center">
-  <img src="./screenshots/06-ecr-images.png" alt="EasyShop Container Images in Amazon ECR" width="100%">
+  <img src="./screenshots/07-ecr-images.png" alt="EasyShop Container Images in Amazon ECR" width="100%">
 </p>
 
 ### ECR Configuration
