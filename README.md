@@ -454,3 +454,70 @@ EasyShop Pods
 ### 🚀 Result
 
 ## This integration provides a clean cloud-native traffic path from the public internet to the EasyShop workloads running on Amazon EKS, while keeping the application routing configuration managed through Kubernetes.
+
+## 📈 Horizontal Pod Autoscaling (HPA)
+
+The EasyShop application uses **Kubernetes Horizontal Pod Autoscaler (HPA)** to automatically adjust the number of application pods based on CPU utilization.
+
+This allows the application workload to scale dynamically according to resource demand while maintaining the desired application performance.
+
+### ⚙️ HPA Configuration
+
+The current EasyShop HPA configuration uses:
+
+| Configuration          |                 Value |
+| ---------------------- | --------------------: |
+| Target CPU Utilization |               **50%** |
+| Minimum Replicas       |                 **1** |
+| Maximum Replicas       |                **10** |
+| Current Replicas       |                 **2** |
+| Namespace              |            `easyshop` |
+| Target Workload        | `Deployment/easyshop` |
+
+### 📊 HPA Status
+
+The current HPA status shows the application operating at approximately **14% CPU utilization against a 50% target**, with 2 active replicas.
+
+<p align="center">
+  <img src="./screenshots/12-hpa-status.png" alt="EasyShop Kubernetes HPA Status" width="100%">
+</p>
+
+### 🔍 HPA Configuration Details
+
+The detailed Kubernetes HPA configuration provides visibility into the scaling policy, resource targets, replica limits, and current scaling conditions.
+
+<p align="center">
+  <img src="./screenshots/13-hpa-details.png" alt="EasyShop HPA Configuration Details" width="100%">
+</p>
+
+### 🔄 Scaling Behavior
+
+```text
+                 CPU Utilization
+                        │
+                        ▼
+                HPA Evaluates Load
+                        │
+              ┌─────────┴─────────┐
+              │                   │
+          Higher Load         Lower Load
+              │                   │
+              ▼                   ▼
+      Increase Replicas     Reduce Replicas
+              │                   │
+              └─────────┬─────────┘
+                        ▼
+                 EasyShop Deployment
+```
+
+### 🚀 Scaling Benefits
+
+* Automatically adjusts application replicas based on resource utilization.
+* Maintains a minimum of 1 replica.
+* Supports scaling up to 10 replicas.
+* Reduces the need for manual pod scaling.
+* Improves application availability during increased workload demand.
+* Uses Kubernetes-native autoscaling capabilities.
+
+---
+
