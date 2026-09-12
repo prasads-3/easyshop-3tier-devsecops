@@ -536,7 +536,7 @@ The EasyShop deployment uses dedicated IAM roles for AWS and Kubernetes componen
 The `AmazonEKSLoadBalancerControllerRole` provides the IAM permissions required by the AWS Load Balancer Controller to manage AWS load-balancing resources for the Kubernetes environment.
 
 <p align="center">
-  <img src="./screenshots/13-iam-load-balancer-role.png" alt="Amazon EKS Load Balancer Controller IAM Role" width="100%">
+  <img src="./screenshots/14-iam-load-balancer-role.png" alt="Amazon EKS Load Balancer Controller IAM Role" width="100%">
 </p>
 
 #### Amazon EKS Cluster Role
@@ -544,7 +544,7 @@ The `AmazonEKSLoadBalancerControllerRole` provides the IAM permissions required 
 The EKS cluster uses a dedicated IAM service role for cluster-level AWS integration.
 
 <p align="center">
-  <img src="./screenshots/14-iam-eks-cluster-role.png" alt="Amazon EKS Cluster IAM Role" width="100%">
+  <img src="./screenshots/15-iam-eks-cluster-role.png" alt="Amazon EKS Cluster IAM Role" width="100%">
 </p>
 
 #### Amazon EKS Node Role
@@ -552,7 +552,7 @@ The EKS cluster uses a dedicated IAM service role for cluster-level AWS integrat
 Worker node compute resources use a dedicated IAM role to interact with required AWS services.
 
 <p align="center">
-  <img src="./screenshots/15-iam-eks-node-role.png" alt="Amazon EKS Node IAM Role" width="100%">
+  <img src="./screenshots/16-iam-eks-node-role.png" alt="Amazon EKS Node IAM Role" width="100%">
 </p>
 
 ### 🛡️ Trivy Security Scanning
@@ -566,7 +566,7 @@ trivy fs --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 0 .
 ```
 
 <p align="center">
-  <img src="./screenshots/16-trivy-security-scan.png" alt="Trivy Security Scan in Jenkins" width="100%">
+  <img src="./screenshots/17-trivy-security-scan.png" alt="Trivy Security Scan in Jenkins" width="100%">
 </p>
 
 The latest scan identified dependency vulnerabilities in the project, including **12 findings: 10 HIGH and 2 CRITICAL**. These results provide visibility into dependency risk and highlight packages that require remediation.
@@ -606,4 +606,317 @@ Amazon EKS
 
 ---
 
+## 🐳 Docker Containerization
+
+Docker is used to package the EasyShop application into a portable and reproducible container image.
+
+The Jenkins CI/CD pipeline automates the container build process and prepares the resulting image for publishing to **Amazon ECR**.
+
+### 🧱 Container Build Workflow
+
+```text
+Application Source
+       │
+       ▼
+   Dockerfile
+       │
+       ▼
+  Docker Build
+       │
+       ▼
+ Docker Image
+       │
+       ▼
+ Security Scan
+       │
+       ▼
+ Amazon ECR
+       │
+       ▼
+ Amazon EKS
+```
+
+### 🔨 Docker Build
+
+The application container image is created as part of the Jenkins CI/CD workflow.
+
+<p align="center">
+  <img src="./screenshots/18-docker-build.png" alt="EasyShop Docker Build in Jenkins" width="100%">
+</p>
+
+### 📦 Container Delivery
+
+After the Docker image is built and validated, it is published to the private **Amazon ECR `easyshop` repository** and becomes available for deployment on Amazon EKS.
+
+### Docker Benefits
+
+* Consistent application packaging.
+* Portable containerized workloads.
+* Reproducible builds through Dockerfiles.
+* Easy integration with CI/CD pipelines.
+* Direct integration with Amazon ECR and Amazon EKS.
+
+---
+
+## 📧 CI/CD Notifications — Gmail
+
+The EasyShop CI/CD pipeline is integrated with email notifications to provide visibility into Jenkins build and deployment results.
+
+After the pipeline execution is completed, Jenkins sends a notification containing the build result and job information.
+
+### 🔔 Notification Workflow
+
+```text
+GitHub
+   │
+   ▼
+Jenkins CI/CD Pipeline
+   │
+   ├── Build
+   ├── SonarQube
+   ├── Trivy
+   ├── Docker
+   ├── Amazon ECR
+   └── Amazon EKS
+            │
+            ▼
+      Pipeline Result
+            │
+            ▼
+        Gmail Notification
+```
+
+### 📩 Jenkins Email Notification
+
+The Jenkins notification provides a convenient way to track the CI/CD pipeline outcome without manually checking the Jenkins dashboard.
+
+<p align="center">
+  <img src="./screenshots/19-gmail-notification.png" alt="Jenkins Gmail CI/CD Notification" width="100%">
+</p>
+
+### 📋 Notification Information
+
+The email notification can provide details such as:
+
+* Jenkins job name
+* Build number
+* Build status
+* Pipeline execution result
+* Build date and time
+* Link to the Jenkins build
+
+### 🚀 Benefits
+
+* Provides immediate visibility into CI/CD execution.
+* Helps track successful and failed builds.
+* Reduces the need for manual Jenkins monitoring.
+* Improves deployment awareness and operational visibility.
+
+---
+## 📊 Kubernetes Workload Health
+
+Kubernetes workload health is continuously verified to ensure that the EasyShop application pods are running successfully inside the Amazon EKS cluster.
+
+The deployment status can be checked using Kubernetes resource information:
+
+```bash
+kubectl get pods -n easyshop
+```
+
+### 🟢 Running Application Workload
+
+The current EasyShop deployment shows the application pod in a **Running** state with the container reported as ready.
+
+<p align="center">
+  <img src="./screenshots/20-kubernetes-workloads.png" alt="EasyShop Kubernetes Workload Status" width="100%">
+</p>
+
+### Workload Health Checks
+
+| Check             | Purpose                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| **Pod Status**    | Confirms application workload is running                     |
+| **Ready Status**  | Confirms the container is ready to serve traffic             |
+| **Restart Count** | Helps identify repeated container failures                   |
+| **Namespace**     | Confirms the workload is running in the `easyshop` namespace |
+
+### Operational Visibility
+
+This Kubernetes-level health check provides a simple validation layer for the application runtime and helps identify workload failures before investigating deeper application-level issues.
+
+---
+## 🧪 Deployment Validation
+
+The EasyShop deployment is validated at multiple Kubernetes layers to confirm that the application workload, service, ingress routing, and autoscaling configuration are operating as expected inside the Amazon EKS environment.
+
+### ✅ Validation Overview
+
+```text id="79f9cd"
+Amazon EKS
+    │
+    ├── Pods
+    │     └── Application Workload
+    │
+    ├── Service
+    │     └── Internal Connectivity
+    │
+    ├── Ingress
+    │     └── External Routing
+    │
+    └── HPA
+          └── Application Scaling
+```
+
+### ☸️ Kubernetes Workloads
+
+The EasyShop application pod is verified using Kubernetes workload status.
+
+<p align="center">
+  <img src="./screenshots/20-kubernetes-workloads.png" alt="EasyShop Kubernetes Workload Validation" width="100%">
+</p>
+
+### 🔗 Kubernetes Service
+
+The application is exposed internally through a Kubernetes `ClusterIP` service on port `80`.
+
+<p align="center">
+  <img src="./screenshots/21-kubernetes-services.png" alt="EasyShop Kubernetes Service Validation" width="100%">
+</p>
+
+### 🌐 Ingress Validation
+
+The Kubernetes ingress is associated with the AWS Application Load Balancer and provides the external routing path to the EasyShop application.
+
+<p align="center">
+  <img src="./screenshots/11-kubernetes-ingress.png" alt="EasyShop Kubernetes Ingress Validation" width="100%">
+</p>
+
+### 📈 HPA Validation
+
+The Horizontal Pod Autoscaler is configured for the EasyShop deployment and provides automatic replica scaling based on CPU utilization.
+
+<p align="center">
+  <img src="./screenshots/12-hpa-status.png" alt="EasyShop HPA Validation" width="100%">
+</p>
+
+### 🔍 Validation Checks
+
+| Validation         | Result                               |
+| ------------------ | ------------------------------------ |
+| Kubernetes Pod     | Running / Ready                      |
+| Kubernetes Service | `ClusterIP` on port `80`             |
+| Kubernetes Ingress | Configured with AWS ALB              |
+| HPA                | Configured for `Deployment/easyshop` |
+| External Access    | Available through AWS ALB            |
+
+### 🚀 Deployment Result
+
+These checks provide evidence that the EasyShop workload is deployed on Amazon EKS, internally exposed through Kubernetes Service, externally routed through the AWS ALB and Ingress layer, and configured for horizontal scaling.
+
+## 📸 Screenshots Gallery
+
+This section provides a visual overview of the EasyShop DevSecOps and AWS deployment implementation.
+
+### 🚀 Application
+
+<p align="center">
+  <img src="./screenshots/01-easyshop-live.png" alt="EasyShop Live Application" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/02-easyshop-live.png" alt="EasyShop Live Application" width="100%">
+</p>
+
+### 🔄 CI/CD & Code Quality
+
+<p align="center">
+  <img src="./screenshots/03-jenkins-pipeline.png" alt="Jenkins CI/CD Pipeline" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/04-sonarqube-dashboard.png" alt="SonarQube Dashboard" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/05-sonarqube-dashboard.png" alt="SonarQube Dashboard" width="100%">
+</p>
+
+### ☁️ AWS Infrastructure
+
+<p align="center">
+  <img src="./screenshots/06-ecr-repository.png" alt="Amazon ECR Repository" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/07-ecr-images.png" alt="Amazon ECR Container Images" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/08-eks-cluster.png" alt="Amazon EKS Cluster" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/09-eks-compute.png" alt="Amazon EKS Compute Resources" width="100%">
+</p>
+
+### 🌐 Networking
+
+<p align="center">
+  <img src="./screenshots/10-aws-alb.png" alt="AWS Application Load Balancer" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/11-kubernetes-ingress.png" alt="Kubernetes Ingress" width="100%">
+</p>
+
+### 📈 Scaling & Security
+
+<p align="center">
+  <img src="./screenshots/12-hpa-status.png" alt="Kubernetes HPA Status" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/13-hpa-details.png" alt="Kubernetes HPA Details" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/14-iam-load-balancer-role.png" alt="AWS IAM Load Balancer Controller Role" width="100%">
+</p>
+ 
+<p align="center">
+  <img src="./screenshots/15-iam-eks-cluster-role.png" alt="Amazon EKS Cluster IAM Role" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/16-iam-eks-node-role.png" alt="Amazon EKS Node IAM Role" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/17-trivy-security-scan.png" alt="Trivy Security Scan" width="100%">
+</p>
+
+### 🐳 Containerization & Notifications
+
+<p align="center">
+  <img src="./screenshots/18-docker-build.png" alt="Docker Build" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/19-gmail-notification.png" alt="Jenkins Gmail Notification" width="100%">
+</p>
+
+### ☸️ Kubernetes Validation
+
+<p align="center">
+  <img src="./screenshots/20-kubernetes-workloads.png" alt="Kubernetes Workloads" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/21-kubernetes-services.png" alt="Kubernetes Services" width="100%">
+</p>
+
+---
+
+
+---
 
