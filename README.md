@@ -479,7 +479,7 @@ The current EasyShop HPA configuration uses:
 The current HPA status shows the application operating at approximately **14% CPU utilization against a 50% target**, with 2 active replicas.
 
 <p align="center">
-  <img src="./screenshots/12-hpa-status.png" alt="EasyShop Kubernetes HPA Status" width="100%">
+  <img src="./screenshots/12-hpa-status .png" alt="EasyShop Kubernetes HPA Status" width="100%">
 </p>
 
 ### 🔍 HPA Configuration Details
