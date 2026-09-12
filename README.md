@@ -224,3 +224,66 @@ The latest EasyShop analysis reports a **Passed Quality Gate** with **0 new issu
 * Kubernetes-based deployment on Amazon EKS.
 * Faster and more reliable application releases.
 
+
+## 📦 Amazon Elastic Container Registry (ECR)
+
+Amazon Elastic Container Registry (Amazon ECR) is used as the private container registry for the EasyShop application.
+
+The Jenkins CI/CD pipeline builds the application container image, performs the required validation and security checks, and publishes the image to the EasyShop ECR repository.
+
+### Container Image Workflow
+
+```text
+Jenkins
+   │
+   ▼
+Docker Build
+   │
+   ▼
+Security Scan
+   │
+   ▼
+Amazon ECR
+   │
+   ▼
+Amazon EKS
+```
+
+### ECR Repository
+
+The EasyShop application uses a private Amazon ECR repository to store and manage its container images.
+
+<p align="center">
+  <img src="./screenshots/05-ecr-repository.png" alt="Amazon ECR EasyShop Repository" width="100%">
+</p>
+
+### Container Images
+
+The ECR repository contains the container images used by the EasyShop Kubernetes deployment.
+
+<p align="center">
+  <img src="./screenshots/06-ecr-images.png" alt="EasyShop Container Images in Amazon ECR" width="100%">
+</p>
+
+### ECR Configuration
+
+| Configuration     | Value                       |
+| ----------------- | --------------------------- |
+| Registry          | Amazon ECR Private Registry |
+| Repository        | `easyshop`                  |
+| AWS Region        | `eu-west-1`                 |
+| Encryption        | AES-256                     |
+| Tag Mutability    | Mutable                     |
+| Deployment Target | Amazon EKS                  |
+
+### ECR Benefits
+
+* Private container image storage.
+* Centralized Docker image management.
+* Versioned image tags for deployments.
+* Native integration with AWS services.
+* Container images available for Amazon EKS workloads.
+
+---
+
+
