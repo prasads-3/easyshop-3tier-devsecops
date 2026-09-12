@@ -521,3 +521,89 @@ The detailed Kubernetes HPA configuration provides visibility into the scaling p
 
 ---
 
+## 🔐 IAM & Security
+
+Security is integrated into the EasyShop AWS and CI/CD architecture through **AWS IAM**, **SonarQube**, and **Trivy**.
+
+AWS IAM controls access between AWS services, while SonarQube and Trivy provide automated code-quality and security analysis during the software delivery lifecycle.
+
+### 🔑 AWS IAM Roles
+
+The EasyShop deployment uses dedicated IAM roles for AWS and Kubernetes components.
+
+#### Application Load Balancer Controller Role
+
+The `AmazonEKSLoadBalancerControllerRole` provides the IAM permissions required by the AWS Load Balancer Controller to manage AWS load-balancing resources for the Kubernetes environment.
+
+<p align="center">
+  <img src="./screenshots/13-iam-load-balancer-role.png" alt="Amazon EKS Load Balancer Controller IAM Role" width="100%">
+</p>
+
+#### Amazon EKS Cluster Role
+
+The EKS cluster uses a dedicated IAM service role for cluster-level AWS integration.
+
+<p align="center">
+  <img src="./screenshots/14-iam-eks-cluster-role.png" alt="Amazon EKS Cluster IAM Role" width="100%">
+</p>
+
+#### Amazon EKS Node Role
+
+Worker node compute resources use a dedicated IAM role to interact with required AWS services.
+
+<p align="center">
+  <img src="./screenshots/15-iam-eks-node-role.png" alt="Amazon EKS Node IAM Role" width="100%">
+</p>
+
+### 🛡️ Trivy Security Scanning
+
+Trivy is integrated into the Jenkins CI/CD workflow to scan the project filesystem for vulnerabilities and secrets.
+
+The pipeline runs a focused scan for **HIGH** and **CRITICAL** vulnerabilities.
+
+```bash
+trivy fs --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 0 .
+```
+
+<p align="center">
+  <img src="./screenshots/16-trivy-security-scan.png" alt="Trivy Security Scan in Jenkins" width="100%">
+</p>
+
+The latest scan identified dependency vulnerabilities in the project, including **12 findings: 10 HIGH and 2 CRITICAL**. These results provide visibility into dependency risk and highlight packages that require remediation.
+
+### 🔍 Security Workflow
+
+```text
+Developer
+    │
+    ▼
+GitHub
+    │
+    ▼
+Jenkins
+    │
+    ├── SonarQube Analysis
+    │
+    ├── Trivy Security Scan
+    │
+    ▼
+Docker Image Build
+    │
+    ▼
+Amazon ECR
+    │
+    ▼
+Amazon EKS
+```
+
+### ✅ Security Practices
+
+* Dedicated IAM roles for AWS and EKS components.
+* Static code analysis through SonarQube.
+* Filesystem vulnerability and secret scanning through Trivy.
+* Version-controlled infrastructure and deployment configuration.
+* Security findings reviewed as part of the CI/CD workflow.
+
+---
+
+
