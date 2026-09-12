@@ -378,4 +378,79 @@ This architecture enables a scalable and repeatable container deployment model w
 
 ---
 
+## 🌐 AWS Application Load Balancer & Kubernetes Ingress
+
+The EasyShop application is exposed to external users through an **AWS Application Load Balancer (ALB)** integrated with **Kubernetes Ingress**.
+
+This layer provides the public entry point for the application and routes incoming HTTP traffic to the appropriate Kubernetes service and application pods running on Amazon EKS.
+
+### 🌍 External Traffic Flow
+
+```text
+                    Internet
+                       │
+                       ▼
+          AWS Application Load Balancer
+                       │
+                       ▼
+            Kubernetes Ingress
+                       │
+                       ▼
+              Kubernetes Service
+                       │
+                       ▼
+                EasyShop Pods
+```
+
+### ⚖️ AWS Application Load Balancer
+
+The AWS Application Load Balancer acts as the public-facing entry point for the EasyShop application.
+
+<p align="center">
+  <img src="./screenshots/09-aws-alb.png" alt="EasyShop AWS Application Load Balancer" width="100%">
+</p>
+
+The load balancer receives external HTTP traffic and forwards requests to the Kubernetes application through the configured ingress routing.
+
+### ☸️ Kubernetes Ingress
+
+Kubernetes Ingress defines how external requests are routed to the EasyShop services running inside the EKS cluster.
+
+<p align="center">
+  <img src="./screenshots/10-kubernetes-ingress.png" alt="EasyShop Kubernetes Ingress" width="100%">
+</p>
+
+### 🔄 Request Routing
+
+```text
+User Request
+     │
+     ▼
+AWS ALB
+     │
+     ▼
+Ingress Rule
+     │
+     ▼
+EasyShop Service
+     │
+     ▼
+Application Pods
+```
+
+### 🔐 Networking Responsibilities
+
+| Component              | Responsibility                             |
+| ---------------------- | ------------------------------------------ |
+| **AWS ALB**            | Public entry point for external traffic    |
+| **Ingress**            | Defines HTTP routing rules                 |
+| **Kubernetes Service** | Provides stable access to application pods |
+| **Pods**               | Serve the EasyShop application             |
+
+### ✅ Result
+
+This architecture separates **public traffic management** from the internal Kubernetes application layer, providing a clean and scalable path from the internet to the EasyShop workloads running on Amazon EKS.
+
+---
+
 
