@@ -407,7 +407,7 @@ This layer provides the public entry point for the application and routes incomi
 The AWS Application Load Balancer acts as the public-facing entry point for the EasyShop application.
 
 <p align="center">
-  <img src="./screenshots/09-aws-alb.png" alt="EasyShop AWS Application Load Balancer" width="100%">
+  <img src="./screenshots/10-aws-alb.png" alt="EasyShop AWS Application Load Balancer" width="100%">
 </p>
 
 The load balancer receives external HTTP traffic and forwards requests to the Kubernetes application through the configured ingress routing.
@@ -417,7 +417,7 @@ The load balancer receives external HTTP traffic and forwards requests to the Ku
 Kubernetes Ingress defines how external requests are routed to the EasyShop services running inside the EKS cluster.
 
 <p align="center">
-  <img src="./screenshots/10-kubernetes-ingress.png" alt="EasyShop Kubernetes Ingress" width="100%">
+  <img src="./screenshots/11-kubernetes-ingress.png" alt="EasyShop Kubernetes Ingress" width="100%">
 </p>
 
 ### 🔄 Request Routing
