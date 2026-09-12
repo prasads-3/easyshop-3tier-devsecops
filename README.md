@@ -184,4 +184,43 @@ Jenkins Pipeline
 
 ---
 
+### 🔍 SonarQube Code Quality Analysis
+
+SonarQube is integrated into the Jenkins CI/CD pipeline to perform static code analysis and evaluate the quality and security of the application code before the deployment workflow continues.
+
+The analysis provides visibility into:
+
+* Code quality
+* Reliability
+* Maintainability
+* Security hotspots
+* New code issues
+* Quality Gate status
+
+### SonarQube Dashboard
+
+<p align="center">
+  <img src="./screenshots/04-sonarqube-dashboard.png" alt="SonarQube EasyShop Dashboard" width="100%">
+</p>
+
+<p align="center">
+  <img src="./screenshots/05-sonarqube-dashboard.png" alt="SonarQube EasyShop Dashboard" width="100%">
+</p>
+
+
+The EasyShop project is continuously analyzed by SonarQube as part of the CI/CD workflow.
+
+### ✅ SonarQube Quality Gate
+
+The latest EasyShop analysis reports a **Passed Quality Gate** with **0 new issues**, allowing the CI/CD workflow to proceed through the remaining stages.
+
+### CI/CD Benefits
+
+* Automated and repeatable application delivery.
+* Reduced manual deployment effort.
+* Consistent Docker image creation.
+* Integrated code quality and security analysis.
+* Automated publishing of container images to Amazon ECR.
+* Kubernetes-based deployment on Amazon EKS.
+* Faster and more reliable application releases.
 
