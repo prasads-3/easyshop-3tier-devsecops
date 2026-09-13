@@ -1,6 +1,6 @@
 # 🛒 EasyShop DevSecOps & AWS EKS Deployment
 
-> A production-style DevSecOps and cloud deployment implementation for the EasyShop application using Jenkins, Docker, Amazon ECR, Amazon EKS, Kubernetes, AWS Application Load Balancer, Horizontal Pod Autoscaler, IAM, and CI/CD email notifications.
+> A production-style DevSecOps and cloud deployment implementation for the EasyShop application using Jenkins, SonarQube, Trivy, Docker, Amazon ECR, Amazon EKS, Kubernetes, AWS Application Load Balancer, Horizontal Pod Autoscaler, IAM, and CI/CD email notifications.
 
 ---
 
@@ -8,22 +8,34 @@
 
 The **EasyShop DevSecOps & AWS EKS Deployment** project demonstrates an end-to-end cloud-native application delivery workflow using **Jenkins CI/CD, Docker, Amazon ECR, Amazon EKS, and Kubernetes**.
 
-The project automates the application delivery lifecycle from source code integration and container image creation to secure image publishing, Kubernetes deployment, external traffic routing, autoscaling, and deployment notifications.
+The project automates the application delivery lifecycle from source code integration and code-quality/security validation to container image creation, image publishing, Kubernetes deployment, external traffic routing, autoscaling, and deployment notifications.
 
-The infrastructure is designed to simulate a real-world DevOps deployment workflow with an emphasis on **automation, containerization, Kubernetes orchestration, AWS cloud services, security, and operational reliability**.
+The infrastructure is designed to simulate a real-world DevOps workflow with an emphasis on:
 
-### Key Objectives
+* CI/CD automation
+* Containerization
+* DevSecOps practices
+* Kubernetes orchestration
+* AWS cloud services
+* Application networking
+* Horizontal autoscaling
+* IAM-based access control
+* Deployment validation
+* Operational visibility
+
+### 🎯 Key Objectives
 
 * Automate application build and deployment using Jenkins.
+* Analyze application code using SonarQube.
+* Perform vulnerability and secret scanning using Trivy.
 * Containerize the application using Docker.
 * Build and publish container images to Amazon ECR.
 * Deploy the application on Amazon EKS using Kubernetes.
 * Expose the application using AWS Application Load Balancer and Kubernetes Ingress.
 * Configure Horizontal Pod Autoscaling for application workloads.
-* Use AWS IAM for controlled access to cloud resources.
-* Integrate security scanning into the CI/CD workflow.
+* Use AWS IAM for controlled access to AWS resources.
 * Send CI/CD pipeline notifications through email.
-* Validate application health and Kubernetes deployment status.
+* Validate Kubernetes workloads, services, ingress, and application availability.
 
 ---
 
@@ -31,39 +43,48 @@ The infrastructure is designed to simulate a real-world DevOps deployment workfl
 
 The **EasyShop** application is deployed on **Amazon EKS** and exposed through an **AWS Application Load Balancer**.
 
+### Live Application
+
 <p align="center">
   <img src="./screenshots/01-easyshop-live.png" alt="EasyShop Live Application" width="95%">
 </p>
 
+### Additional Live Application View
+
+<p align="center">
+  <img src="./screenshots/02-easyshop-live.png" alt="EasyShop Live Application View" width="95%">
+</p>
+
 ### Deployment Environment
 
-| Component               | Implementation                |
-| ----------------------- | ----------------------------- |
-| Cloud Platform          | AWS                           |
-| Kubernetes              | Amazon EKS                    |
-| Container Registry      | Amazon ECR                    |
-| Ingress / Load Balancer | AWS Application Load Balancer |
-| CI/CD                   | Jenkins                       |
-| Containerization        | Docker                        |
-| Autoscaling             | Kubernetes HPA                |
-| Operating Environment   | Linux                         |
+| Component               | Implementation               |
+| ----------------------- | ---------------------------- |
+| Cloud Platform          | AWS                          |
+| Kubernetes Platform     | Amazon EKS                   |
+| Container Registry      | Amazon ECR                   |
+| CI/CD                   | Jenkins                      |
+| Containerization        | Docker                       |
+| Code Quality            | SonarQube                    |
+| Security Scanning       | Trivy                        |
+| Ingress / Load Balancer | Kubernetes Ingress + AWS ALB |
+| Autoscaling             | Kubernetes HPA               |
+| Identity & Access       | AWS IAM                      |
+| Operating Environment   | Linux                        |
+| AWS Region              | `eu-west-1` (Ireland)        |
 
 ### Application Access
 
-🔗 **Live Application:**
+**Live Application Endpoint:**
+
 `http://k8s-easyshop-easyshop-8d5e6882e1-807577481.eu-west-1.elb.amazonaws.com`
+
+> **Note:** The public ALB DNS name is infrastructure-generated and may change if the AWS load-balancing resources are recreated.
 
 ---
 
-## 🏗️ Solution Architecture
+# 🏗️ Solution Architecture
 
-The EasyShop platform follows an automated DevSecOps deployment architecture where application source code moves through CI/CD, containerization, security validation, image publishing, Kubernetes deployment, networking, and autoscaling.
-
-### End-to-End Architecture
-
-<p align="center">
-  <img src="./screenshots/02-architecture.png" alt="EasyShop AWS DevSecOps Architecture" width="100%">
-</p>
+The EasyShop platform follows an automated DevSecOps deployment architecture where application source code moves through CI/CD automation, code-quality analysis, security scanning, containerization, image publishing, Kubernetes deployment, networking, and autoscaling.
 
 ### Architecture Flow
 
@@ -76,9 +97,10 @@ GitHub Repository
     ▼
 Jenkins CI/CD
     │
-    ├── Checkout
-    ├── Build
-    ├── Security Scan
+    ├── Source Checkout
+    ├── Build / Validation
+    ├── SonarQube Analysis
+    ├── Trivy Security Scan
     └── Docker Build
              │
              ▼
@@ -89,43 +111,70 @@ Jenkins CI/CD
              │
        Kubernetes Workloads
              │
-        ┌────┴────┐
-        │         │
-     Service     HPA
-        │
-        ▼
- Kubernetes Ingress
-        │
-        ▼
-AWS Application Load Balancer
-        │
-        ▼
-🌐 EasyShop Application
+       ┌─────┼─────┐
+       │     │     │
+       ▼     ▼     ▼
+ Deployment Service HPA
+    │       │
+    │       ▼
+    │   Kubernetes
+    │    Ingress
+    │       │
+    │       ▼
+    │   AWS ALB
+    │       │
+    └───────┴──────► EasyShop
+```
+
+### AWS & Kubernetes Architecture
+
+```text
+                     AWS CLOUD
+                         │
+          ┌──────────────┴──────────────┐
+          │                             │
+          ▼                             ▼
+      Amazon ECR                  Amazon EKS
+   Container Registry          Kubernetes Cluster
+          │                             │
+          │                             ├── Deployment
+          │                             ├── Pods
+          │                             ├── Service
+          │                             ├── Ingress
+          │                             └── HPA
+          │                                   │
+          │                                   ▼
+          │                           AWS Load Balancer
+          │                                   │
+          └───────────────►───────────────────┘
+                                      │
+                                      ▼
+                                EasyShop Web App
 ```
 
 ### Key Architecture Components
 
-| Layer              | Technology                   | Responsibility                            |
-| ------------------ | ---------------------------- | ----------------------------------------- |
-| Source Control     | GitHub                       | Application source management             |
-| CI/CD              | Jenkins                      | Build and deployment automation           |
-| Containerization   | Docker                       | Application packaging                     |
-| Container Registry | Amazon ECR                   | Secure image storage                      |
-| Orchestration      | Amazon EKS                   | Kubernetes workload management            |
-| Networking         | Kubernetes Ingress + AWS ALB | External application access               |
-| Scaling            | Kubernetes HPA               | Dynamic pod scaling                       |
-| Security           | IAM + Trivy                  | Access control and vulnerability scanning |
-| Notifications      | Gmail                        | CI/CD pipeline notifications              |
+| Layer              | Technology                   | Responsibility                    |
+| ------------------ | ---------------------------- | --------------------------------- |
+| Source Control     | GitHub                       | Application source management     |
+| CI/CD              | Jenkins                      | Build and deployment automation   |
+| Code Quality       | SonarQube                    | Static code analysis              |
+| Security           | Trivy                        | Vulnerability and secret scanning |
+| Containerization   | Docker                       | Application packaging             |
+| Container Registry | Amazon ECR                   | Private image storage             |
+| Orchestration      | Amazon EKS                   | Kubernetes workload management    |
+| Networking         | Kubernetes Ingress + AWS ALB | External application access       |
+| Scaling            | Kubernetes HPA               | Dynamic pod scaling               |
+| Access Control     | AWS IAM                      | AWS resource permissions          |
+| Notifications      | Jenkins Email / Gmail        | CI/CD execution notifications     |
 
 ---
 
----
+# 🔄 DevSecOps CI/CD Pipeline
 
-## 🔄 DevSecOps CI/CD Pipeline
+Jenkins acts as the central automation server for the EasyShop CI/CD workflow.
 
-The EasyShop project uses **Jenkins** as the central CI/CD automation server.
-
-The pipeline automates the application delivery process by retrieving the source code, validating the application, performing security checks, building the Docker image, publishing the image to Amazon ECR, and preparing the application for deployment on Amazon EKS.
+The pipeline connects source-code management, application validation, code-quality analysis, security scanning, Docker image creation, Amazon ECR publishing, and Kubernetes deployment.
 
 ### Jenkins Pipeline Architecture
 
@@ -142,19 +191,21 @@ Jenkins Pipeline
     │
     ├── Build / Validation
     │
-    ├── Security Scan
+    ├── SonarQube Analysis
+    │
+    ├── Trivy Security Scan
     │
     ├── Docker Image Build
     │
     ├── Push Image to Amazon ECR
     │
-    └── Kubernetes Deployment
+    └── Deploy to Amazon EKS
              │
              ▼
-        Amazon EKS
+        Kubernetes Workloads
 ```
 
-### Jenkins Pipeline Stage View
+### Jenkins Pipeline
 
 <p align="center">
   <img src="./screenshots/03-jenkins-pipeline.png" alt="Jenkins CI/CD Pipeline" width="100%">
@@ -162,31 +213,32 @@ Jenkins Pipeline
 
 ### Pipeline Stages
 
-| Stage              | Responsibility                                                   |
-| ------------------ | ---------------------------------------------------------------- |
-| Source Checkout    | Retrieves the latest source code from GitHub                     |
-| Build / Validation | Validates the application and build configuration                |
-| Security Scan      | Scans the application or container artifacts for security issues |
-| Docker Build       | Creates the application container image                          |
-| Image Push         | Publishes the Docker image to Amazon ECR                         |
-| Deployment         | Deploys the application workload to Amazon EKS                   |
-| Validation         | Verifies the deployment and application availability             |
+| Stage                 | Responsibility                                               |
+| --------------------- | ------------------------------------------------------------ |
+| Source Checkout       | Retrieves application source code from GitHub                |
+| Build / Validation    | Validates application and build configuration                |
+| SonarQube Analysis    | Performs static code-quality analysis                        |
+| Trivy Security Scan   | Scans the project filesystem for vulnerabilities and secrets |
+| Docker Build          | Creates the application container image                      |
+| Image Push            | Publishes the image to Amazon ECR                            |
+| Kubernetes Deployment | Deploys the application workload to Amazon EKS               |
+| Validation            | Verifies Kubernetes and application availability             |
 
 ### CI/CD Benefits
 
 * Automated and repeatable application delivery.
 * Reduced manual deployment effort.
 * Consistent Docker image creation.
-* Integrated security validation.
+* Integrated code-quality and security checks.
 * Automated image publishing to Amazon ECR.
 * Kubernetes-based deployment on Amazon EKS.
 * Faster and more reliable application releases.
 
 ---
 
-### 🔍 SonarQube Code Quality Analysis
+# 🔍 SonarQube Code Quality Analysis
 
-SonarQube is integrated into the Jenkins CI/CD pipeline to perform static code analysis and evaluate the quality and security of the application code before the deployment workflow continues.
+SonarQube is integrated into the Jenkins CI/CD workflow to perform static code analysis and provide visibility into application code quality.
 
 The analysis provides visibility into:
 
@@ -204,32 +256,22 @@ The analysis provides visibility into:
 </p>
 
 <p align="center">
-  <img src="./screenshots/05-sonarqube-dashboard.png" alt="SonarQube EasyShop Dashboard" width="100%">
+  <img src="./screenshots/05-sonarqube-dashboard.png" alt="SonarQube EasyShop Code Quality Dashboard" width="100%">
 </p>
 
+### Quality Gate
 
-The EasyShop project is continuously analyzed by SonarQube as part of the CI/CD workflow.
+The latest EasyShop analysis reports a **Passed Quality Gate** with **0 new issues**.
 
-### ✅ SonarQube Quality Gate
+This provides an additional quality-control stage before the application continues through the remaining CI/CD workflow.
 
-The latest EasyShop analysis reports a **Passed Quality Gate** with **0 new issues**, allowing the CI/CD workflow to proceed through the remaining stages.
+---
 
-### CI/CD Benefits
+# 📦 Amazon Elastic Container Registry — ECR
 
-* Automated and repeatable application delivery.
-* Reduced manual deployment effort.
-* Consistent Docker image creation.
-* Integrated code quality and security analysis.
-* Automated publishing of container images to Amazon ECR.
-* Kubernetes-based deployment on Amazon EKS.
-* Faster and more reliable application releases.
+Amazon Elastic Container Registry (**Amazon ECR**) is used as the private container registry for the EasyShop application.
 
-
-## 📦 Amazon Elastic Container Registry (ECR)
-
-Amazon Elastic Container Registry (Amazon ECR) is used as the private container registry for the EasyShop application.
-
-The Jenkins CI/CD pipeline builds the application container image, performs the required validation and security checks, and publishes the image to the EasyShop ECR repository.
+The Jenkins pipeline builds the Docker image and publishes the resulting image to the EasyShop ECR repository for consumption by Amazon EKS.
 
 ### Container Image Workflow
 
@@ -240,7 +282,7 @@ Jenkins
 Docker Build
    │
    ▼
-Security Scan
+Security Validation
    │
    ▼
 Amazon ECR
@@ -251,15 +293,11 @@ Amazon EKS
 
 ### ECR Repository
 
-The EasyShop application uses a private Amazon ECR repository to store and manage its container images.
-
 <p align="center">
   <img src="./screenshots/06-ecr-repository.png" alt="Amazon ECR EasyShop Repository" width="100%">
 </p>
 
 ### Container Images
-
-The ECR repository contains the container images used by the EasyShop Kubernetes deployment.
 
 <p align="center">
   <img src="./screenshots/07-ecr-images.png" alt="EasyShop Container Images in Amazon ECR" width="100%">
@@ -286,39 +324,39 @@ The ECR repository contains the container images used by the EasyShop Kubernetes
 
 ---
 
-## ☸️ Amazon EKS — Kubernetes Runtime Platform
+# ☸️ Amazon EKS — Kubernetes Runtime Platform
 
-Amazon Elastic Kubernetes Service (Amazon EKS) provides the managed Kubernetes platform used to run the EasyShop application workloads on AWS.
+Amazon Elastic Kubernetes Service (**Amazon EKS**) provides the managed Kubernetes platform used to run the EasyShop application workloads on AWS.
 
-The application containers published to **Amazon ECR** are deployed into the EKS cluster, where Kubernetes manages workload scheduling, service connectivity, application availability, and horizontal scaling.
+The application container images published to **Amazon ECR** are deployed into the EKS cluster, where Kubernetes manages application workloads, services, networking, and horizontal scaling.
 
-### 🧩 EKS Deployment Architecture
+### EKS Deployment Architecture
 
 ```text
-                 Amazon EKS
-                     │
-          ┌──────────┴──────────┐
-          │                     │
-          ▼                     ▼
-     Kubernetes            Compute Resources
-      Workloads             / Worker Nodes
-          │                     │
-          └──────────┬──────────┘
-                     │
-                     ▼
-              EasyShop Pods
-                     │
-          ┌──────────┼──────────┐
-          │          │          │
-          ▼          ▼          ▼
-       Service    Ingress      HPA
-          │          │          │
-          └──────────┼──────────┘
-                     ▼
-              AWS ALB / Internet
+                    Amazon EKS
+                        │
+          ┌─────────────┴─────────────┐
+          │                           │
+          ▼                           ▼
+    Kubernetes                  Compute Resources
+     Workloads                    Worker Nodes
+          │                           │
+          └─────────────┬─────────────┘
+                        │
+                        ▼
+                  EasyShop Pods
+                        │
+             ┌──────────┼──────────┐
+             │          │          │
+             ▼          ▼          ▼
+         Service     Ingress      HPA
+             │          │          │
+             └──────────┼──────────┘
+                        ▼
+                     AWS ALB
 ```
 
-### ☁️ EKS Cluster Overview
+### EKS Cluster
 
 The EasyShop application is deployed on an **Amazon EKS cluster in the `eu-west-1` (Ireland) AWS region**.
 
@@ -326,28 +364,26 @@ The EasyShop application is deployed on an **Amazon EKS cluster in the `eu-west-
   <img src="./screenshots/08-eks-cluster.png" alt="EasyShop Amazon EKS Cluster" width="100%">
 </p>
 
-> **Amazon EKS acts as the Kubernetes runtime platform, while Amazon ECR provides the container images consumed by the application workloads.**
+> Amazon EKS provides the Kubernetes runtime platform, while Amazon ECR provides the container images consumed by the workloads.
 
-### 🖥️ EKS Compute Resources
-
-The cluster compute resources provide the runtime capacity required to execute the EasyShop Kubernetes workloads.
+### EKS Compute Resources
 
 <p align="center">
   <img src="./screenshots/09-eks-compute.png" alt="EasyShop Amazon EKS Compute Resources" width="100%">
 </p>
 
-### ⚙️ What EKS Manages
+### Kubernetes Components
 
-| Kubernetes Layer      | Responsibility                                    |
-| --------------------- | ------------------------------------------------- |
-| **Pods**              | Run the EasyShop application containers           |
-| **Deployments**       | Maintain the desired application replica state    |
-| **Services**          | Provide stable communication between workloads    |
-| **Ingress**           | Route external HTTP/HTTPS traffic                 |
-| **HPA**               | Dynamically adjust application replicas           |
-| **Compute Resources** | Provide runtime capacity for Kubernetes workloads |
+| Component                  | Responsibility                                  |
+| -------------------------- | ----------------------------------------------- |
+| Pods                       | Run EasyShop application containers             |
+| Deployment                 | Maintains desired application replica state     |
+| Service                    | Provides stable internal application networking |
+| Ingress                    | Defines external HTTP routing                   |
+| HPA                        | Dynamically adjusts application replicas        |
+| Worker / Compute Resources | Provide runtime capacity                        |
 
-### 🔄 ECR → EKS Deployment Flow
+### ECR → EKS Deployment Flow
 
 ```text
 Docker Image
@@ -355,7 +391,7 @@ Docker Image
      ▼
 Amazon ECR
      │
-     │  Image Pull
+     │ Image Pull
      ▼
 Amazon EKS
      │
@@ -370,63 +406,49 @@ EasyShop Pods
      └── HPA
 ```
 
-### 🚀 Why Amazon EKS?
-
-Amazon EKS provides the Kubernetes foundation for the project while integrating the application runtime with AWS-native services such as **IAM, networking, load balancing, and container registry**.
-
-This architecture enables a scalable and repeatable container deployment model while keeping the application configuration managed through Kubernetes manifests.
-
 ---
 
-## 🌐 AWS Application Load Balancer & Kubernetes Ingress
+# 🌐 AWS Application Load Balancer & Kubernetes Ingress
 
-The EasyShop application is exposed to the internet through an **AWS Application Load Balancer (ALB)** integrated with **Kubernetes Ingress**.
+The EasyShop application is exposed through an **AWS Application Load Balancer (ALB)** integrated with **Kubernetes Ingress**.
 
-This networking layer provides a controlled path for external traffic to reach the application workloads running inside the Amazon EKS cluster.
+This provides the external traffic path from the public internet to the EasyShop workloads running inside Amazon EKS.
 
-### 🌍 End-to-End Traffic Flow
+### End-to-End Traffic Flow
 
 ```text
-                    Internet
-                       │
-                       ▼
-        ┌─────────────────────────────┐
-        │ AWS Application Load        │
-        │ Balancer                    │
-        └─────────────────────────────┘
-                       │
-                       ▼
-              Kubernetes Ingress
-                  easyshop-ingress
-                       │
-                       ▼
-              Kubernetes Service
-                       │
-                       ▼
-                EasyShop Pods
+Internet
+   │
+   ▼
+AWS Application Load Balancer
+   │
+   ▼
+Kubernetes Ingress
+   │
+   ▼
+Kubernetes Service
+   │
+   ▼
+EasyShop Pods
 ```
 
-### ⚖️ AWS Application Load Balancer
+### AWS Application Load Balancer
 
-The AWS Application Load Balancer is configured as an **internet-facing Application Load Balancer** and provides the public entry point for the EasyShop application.
+The AWS Application Load Balancer provides the public entry point for the EasyShop application.
 
 <p align="center">
   <img src="./screenshots/10-aws-alb.png" alt="EasyShop AWS Application Load Balancer" width="100%">
 </p>
 
-### ☸️ Kubernetes Ingress
+### Kubernetes Ingress
 
-Kubernetes Ingress defines the routing configuration used to connect the AWS load balancer with the EasyShop Kubernetes service.
-
-The ingress is associated with the AWS Load Balancer and exposes the application on **HTTP port 80**.
+The Kubernetes Ingress defines the application routing configuration used to connect the external load balancer with the EasyShop service.
 
 <p align="center">
   <img src="./screenshots/11-kubernetes-ingress.png" alt="EasyShop Kubernetes Ingress" width="100%">
 </p>
 
-### 🔗 Verified Routing
-
-The Kubernetes ingress resolves to the same AWS Load Balancer DNS endpoint used to expose the live application.
+### Verified Routing
 
 ```text
 AWS ALB
@@ -441,56 +463,49 @@ EasyShop Service
 EasyShop Pods
 ```
 
-### ✅ Networking Components
+### Networking Components
 
-| Component              | Role                            |
-| ---------------------- | ------------------------------- |
-| **AWS ALB**            | Internet-facing entry point     |
-| **Listener : 80**      | Receives HTTP traffic           |
-| **Kubernetes Ingress** | Defines application routing     |
-| **Kubernetes Service** | Provides stable workload access |
-| **EasyShop Pods**      | Serve the application           |
+| Component          | Role                                    |
+| ------------------ | --------------------------------------- |
+| AWS ALB            | Internet-facing application entry point |
+| Listener : 80      | Receives HTTP traffic                   |
+| Kubernetes Ingress | Defines application routing             |
+| Kubernetes Service | Provides stable workload access         |
+| EasyShop Pods      | Serve the application                   |
 
-### 🚀 Result
+---
 
-## This integration provides a clean cloud-native traffic path from the public internet to the EasyShop workloads running on Amazon EKS, while keeping the application routing configuration managed through Kubernetes.
-
-## 📈 Horizontal Pod Autoscaling (HPA)
+# 📈 Horizontal Pod Autoscaling — HPA
 
 The EasyShop application uses **Kubernetes Horizontal Pod Autoscaler (HPA)** to automatically adjust the number of application pods based on CPU utilization.
 
-This allows the application workload to scale dynamically according to resource demand while maintaining the desired application performance.
+### HPA Configuration
 
-### ⚙️ HPA Configuration
-
-The current EasyShop HPA configuration uses:
-
-| Configuration          |                 Value |
-| ---------------------- | --------------------: |
-| Target CPU Utilization |               **50%** |
-| Minimum Replicas       |                 **1** |
-| Maximum Replicas       |                **10** |
-| Current Replicas       |                 **2** |
-| Namespace              |            `easyshop` |
+| Configuration          | Value                 |
+| ---------------------- | --------------------- |
+| Target CPU Utilization | **50%**               |
+| Minimum Replicas       | **1**                 |
+| Maximum Replicas       | **10**                |
+| Namespace              | `easyshop`            |
 | Target Workload        | `Deployment/easyshop` |
 
-### 📊 HPA Status
+### Current Runtime Status
 
-The current HPA status shows the application operating at approximately **14% CPU utilization against a 50% target**, with 2 active replicas.
+At the time of screenshot capture, the HPA reported approximately **14% CPU utilization against a 50% target**, with **2 active replicas**.
+
+> **Current replicas are runtime observations and can change automatically according to workload and HPA decisions.**
 
 <p align="center">
-  <img src="./screenshots/12-hpa-status .png" alt="EasyShop Kubernetes HPA Status" width="100%">
+  <img src="./screenshots/12-hpa-status%20.png" alt="EasyShop Kubernetes HPA Status" width="100%">
 </p>
 
-### 🔍 HPA Configuration Details
-
-The detailed Kubernetes HPA configuration provides visibility into the scaling policy, resource targets, replica limits, and current scaling conditions.
+### HPA Configuration Details
 
 <p align="center">
   <img src="./screenshots/13-hpa-details.png" alt="EasyShop HPA Configuration Details" width="100%">
 </p>
 
-### 🔄 Scaling Behavior
+### Scaling Behavior
 
 ```text
                  CPU Utilization
@@ -510,68 +525,72 @@ The detailed Kubernetes HPA configuration provides visibility into the scaling p
                  EasyShop Deployment
 ```
 
-### 🚀 Scaling Benefits
+### Scaling Benefits
 
-* Automatically adjusts application replicas based on resource utilization.
+* Automatically adjusts application replicas.
 * Maintains a minimum of 1 replica.
 * Supports scaling up to 10 replicas.
-* Reduces the need for manual pod scaling.
-* Improves application availability during increased workload demand.
-* Uses Kubernetes-native autoscaling capabilities.
+* Reduces manual pod-scaling operations.
+* Helps maintain application availability during increased workload.
+* Uses Kubernetes-native autoscaling.
 
 ---
 
-## 🔐 IAM & Security
+# 🔐 IAM & Security
 
-Security is integrated into the EasyShop AWS and CI/CD architecture through **AWS IAM**, **SonarQube**, and **Trivy**.
+Security is integrated into the EasyShop AWS and CI/CD architecture through **AWS IAM, SonarQube, and Trivy**.
 
-AWS IAM controls access between AWS services, while SonarQube and Trivy provide automated code-quality and security analysis during the software delivery lifecycle.
+### AWS IAM Roles
 
-### 🔑 AWS IAM Roles
+The deployment uses dedicated IAM roles for AWS and Kubernetes-related components.
 
-The EasyShop deployment uses dedicated IAM roles for AWS and Kubernetes components.
+### Application Load Balancer Controller Role
 
-#### Application Load Balancer Controller Role
-
-The `AmazonEKSLoadBalancerControllerRole` provides the IAM permissions required by the AWS Load Balancer Controller to manage AWS load-balancing resources for the Kubernetes environment.
+The `AmazonEKSLoadBalancerControllerRole` provides permissions required by the AWS Load Balancer Controller to manage AWS load-balancing resources.
 
 <p align="center">
   <img src="./screenshots/14-iam-load-balancer-role.png" alt="Amazon EKS Load Balancer Controller IAM Role" width="100%">
 </p>
 
-#### Amazon EKS Cluster Role
+### Amazon EKS Cluster Role
 
-The EKS cluster uses a dedicated IAM service role for cluster-level AWS integration.
+The EKS cluster uses a dedicated IAM service role for AWS integration.
 
 <p align="center">
-  <img src="./screenshots/15-iam-eks-cluster-role.png" alt="Amazon EKS Cluster IAM Role" width="100%">
+  <img src="./screenshots/15-iam-eks-cluster-role..png" alt="Amazon EKS Cluster IAM Role" width="100%">
 </p>
 
-#### Amazon EKS Node Role
+### Amazon EKS Node Role
 
-Worker node compute resources use a dedicated IAM role to interact with required AWS services.
+Worker-node compute resources use a dedicated IAM role to interact with required AWS services.
 
 <p align="center">
   <img src="./screenshots/16-iam-eks-node-role.png" alt="Amazon EKS Node IAM Role" width="100%">
 </p>
 
-### 🛡️ Trivy Security Scanning
+---
 
-Trivy is integrated into the Jenkins CI/CD workflow to scan the project filesystem for vulnerabilities and secrets.
+# 🛡️ Trivy Security Scanning
 
-The pipeline runs a focused scan for **HIGH** and **CRITICAL** vulnerabilities.
+Trivy is integrated into the Jenkins CI/CD workflow to scan the **project filesystem for vulnerabilities and secrets**.
+
+The configured scan focuses on **HIGH** and **CRITICAL** findings.
 
 ```bash
 trivy fs --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 0 .
 ```
 
 <p align="center">
-  <img src="./screenshots/17-trivy-security-scan.png" alt="Trivy Security Scan in Jenkins" width="100%">
+  <img src="./screenshots/17-trivy-security-scan.png" alt="Trivy Security Scan" width="100%">
 </p>
 
-The latest scan identified dependency vulnerabilities in the project, including **12 findings: 10 HIGH and 2 CRITICAL**. These results provide visibility into dependency risk and highlight packages that require remediation.
+The captured scan reported **12 findings: 10 HIGH and 2 CRITICAL**.
 
-### 🔍 Security Workflow
+These findings provide visibility into dependency and security risks that can be reviewed and remediated.
+
+> **Note:** The current command uses `trivy fs`, so this documentation describes a filesystem vulnerability/secret scan rather than claiming a Docker image scan.
+
+### Security Workflow
 
 ```text
 Developer
@@ -584,7 +603,7 @@ Jenkins
     │
     ├── SonarQube Analysis
     │
-    ├── Trivy Security Scan
+    ├── Trivy Filesystem Scan
     │
     ▼
 Docker Image Build
@@ -596,23 +615,23 @@ Amazon ECR
 Amazon EKS
 ```
 
-### ✅ Security Practices
+### Security Practices
 
 * Dedicated IAM roles for AWS and EKS components.
 * Static code analysis through SonarQube.
 * Filesystem vulnerability and secret scanning through Trivy.
 * Version-controlled infrastructure and deployment configuration.
-* Security findings reviewed as part of the CI/CD workflow.
+* Security findings made visible as part of the CI/CD workflow.
 
 ---
 
-## 🐳 Docker Containerization
+# 🐳 Docker Containerization
 
 Docker is used to package the EasyShop application into a portable and reproducible container image.
 
-The Jenkins CI/CD pipeline automates the container build process and prepares the resulting image for publishing to **Amazon ECR**.
+The Jenkins pipeline automates the Docker build process and prepares the resulting image for publishing to Amazon ECR.
 
-### 🧱 Container Build Workflow
+### Container Build Workflow
 
 ```text
 Application Source
@@ -627,7 +646,7 @@ Application Source
  Docker Image
        │
        ▼
- Security Scan
+ Security Validation
        │
        ▼
  Amazon ECR
@@ -636,15 +655,13 @@ Application Source
  Amazon EKS
 ```
 
-### 🔨 Docker Build
-
-The application container image is created as part of the Jenkins CI/CD workflow.
+### Docker Build
 
 <p align="center">
   <img src="./screenshots/18-docker-build.png" alt="EasyShop Docker Build in Jenkins" width="100%">
 </p>
 
-### 📦 Container Delivery
+### Container Delivery
 
 After the Docker image is built and validated, it is published to the private **Amazon ECR `easyshop` repository** and becomes available for deployment on Amazon EKS.
 
@@ -653,18 +670,16 @@ After the Docker image is built and validated, it is published to the private **
 * Consistent application packaging.
 * Portable containerized workloads.
 * Reproducible builds through Dockerfiles.
-* Easy integration with CI/CD pipelines.
+* Easy CI/CD integration.
 * Direct integration with Amazon ECR and Amazon EKS.
 
 ---
 
-## 📧 CI/CD Notifications — Gmail
+# 📧 CI/CD Notifications — Gmail
 
 The EasyShop CI/CD pipeline is integrated with email notifications to provide visibility into Jenkins build and deployment results.
 
-After the pipeline execution is completed, Jenkins sends a notification containing the build result and job information.
-
-### 🔔 Notification Workflow
+### Notification Workflow
 
 ```text
 GitHub
@@ -683,49 +698,46 @@ Jenkins CI/CD Pipeline
       Pipeline Result
             │
             ▼
-        Gmail Notification
+      Gmail Notification
 ```
 
-### 📩 Jenkins Email Notification
-
-The Jenkins notification provides a convenient way to track the CI/CD pipeline outcome without manually checking the Jenkins dashboard.
+### Jenkins Email Notification
 
 <p align="center">
   <img src="./screenshots/19-gmail-notification.png" alt="Jenkins Gmail CI/CD Notification" width="100%">
 </p>
 
-### 📋 Notification Information
+### Notification Information
 
-The email notification can provide details such as:
+The notification can provide information such as:
 
 * Jenkins job name
 * Build number
 * Build status
 * Pipeline execution result
 * Build date and time
-* Link to the Jenkins build
+* Jenkins build reference
 
-### 🚀 Benefits
+### Benefits
 
-* Provides immediate visibility into CI/CD execution.
+* Provides visibility into CI/CD execution.
 * Helps track successful and failed builds.
-* Reduces the need for manual Jenkins monitoring.
-* Improves deployment awareness and operational visibility.
+* Reduces manual Jenkins monitoring.
+* Improves deployment awareness.
 
 ---
-## 📊 Kubernetes Workload Health
 
-Kubernetes workload health is continuously verified to ensure that the EasyShop application pods are running successfully inside the Amazon EKS cluster.
+# 📊 Kubernetes Workload Health
 
-The deployment status can be checked using Kubernetes resource information:
+Kubernetes workload health is verified to ensure that the EasyShop application pods are running successfully inside Amazon EKS.
+
+The deployment status can be checked using:
 
 ```bash
 kubectl get pods -n easyshop
 ```
 
-### 🟢 Running Application Workload
-
-The current EasyShop deployment shows the application pod in a **Running** state with the container reported as ready.
+### Running Application Workload
 
 <p align="center">
   <img src="./screenshots/20-kubernetes-workloads.png" alt="EasyShop Kubernetes Workload Status" width="100%">
@@ -733,25 +745,26 @@ The current EasyShop deployment shows the application pod in a **Running** state
 
 ### Workload Health Checks
 
-| Check             | Purpose                                                      |
-| ----------------- | ------------------------------------------------------------ |
-| **Pod Status**    | Confirms application workload is running                     |
-| **Ready Status**  | Confirms the container is ready to serve traffic             |
-| **Restart Count** | Helps identify repeated container failures                   |
-| **Namespace**     | Confirms the workload is running in the `easyshop` namespace |
+| Check         | Purpose                                        |
+| ------------- | ---------------------------------------------- |
+| Pod Status    | Confirms the application workload is running   |
+| Ready Status  | Confirms containers are ready to serve traffic |
+| Restart Count | Helps identify repeated container failures     |
+| Namespace     | Confirms the workload is running in `easyshop` |
 
 ### Operational Visibility
 
-This Kubernetes-level health check provides a simple validation layer for the application runtime and helps identify workload failures before investigating deeper application-level issues.
+Kubernetes workload checks provide a runtime validation layer and help identify workload failures during deployment and operation.
 
 ---
-## 🧪 Deployment Validation
 
-The EasyShop deployment is validated at multiple Kubernetes layers to confirm that the application workload, service, ingress routing, and autoscaling configuration are operating as expected inside the Amazon EKS environment.
+# 🧪 Deployment Validation
 
-### ✅ Validation Overview
+The EasyShop deployment is validated across multiple Kubernetes and AWS layers.
 
-```text id="79f9cd"
+### Validation Flow
+
+```text
 Amazon EKS
     │
     ├── Pods
@@ -767,39 +780,15 @@ Amazon EKS
           └── Application Scaling
 ```
 
-### ☸️ Kubernetes Workloads
+### Kubernetes Service
 
-The EasyShop application pod is verified using Kubernetes workload status.
-
-<p align="center">
-  <img src="./screenshots/20-kubernetes-workloads.png" alt="EasyShop Kubernetes Workload Validation" width="100%">
-</p>
-
-### 🔗 Kubernetes Service
-
-The application is exposed internally through a Kubernetes `ClusterIP` service on port `80`.
+The EasyShop application is exposed internally through a Kubernetes `ClusterIP` service on port `80`.
 
 <p align="center">
-  <img src="./screenshots/21-kubernetes-services.png" alt="EasyShop Kubernetes Service Validation" width="100%">
+  <img src="./screenshots/21-kubernetes-services.png" alt="EasyShop Kubernetes Service" width="100%">
 </p>
 
-### 🌐 Ingress Validation
-
-The Kubernetes ingress is associated with the AWS Application Load Balancer and provides the external routing path to the EasyShop application.
-
-<p align="center">
-  <img src="./screenshots/11-kubernetes-ingress.png" alt="EasyShop Kubernetes Ingress Validation" width="100%">
-</p>
-
-### 📈 HPA Validation
-
-The Horizontal Pod Autoscaler is configured for the EasyShop deployment and provides automatic replica scaling based on CPU utilization.
-
-<p align="center">
-  <img src="./screenshots/12-hpa-status .png" alt="EasyShop HPA Validation" width="100%">
-</p>
-
-### 🔍 Validation Checks
+### Validation Checks
 
 | Validation         | Result                               |
 | ------------------ | ------------------------------------ |
@@ -809,13 +798,22 @@ The Horizontal Pod Autoscaler is configured for the EasyShop deployment and prov
 | HPA                | Configured for `Deployment/easyshop` |
 | External Access    | Available through AWS ALB            |
 
-### 🚀 Deployment Result
+### Deployment Validation Commands
 
-These checks provide evidence that the EasyShop workload is deployed on Amazon EKS, internally exposed through Kubernetes Service, externally routed through the AWS ALB and Ingress layer, and configured for horizontal scaling.
+```bash
+kubectl get pods -n easyshop
+kubectl get svc -n easyshop
+kubectl get ingress -n easyshop
+kubectl get hpa -n easyshop
+```
 
-## 🛠️ Technology Stack
+These checks validate the major Kubernetes resources involved in the EasyShop deployment.
 
-The EasyShop platform combines modern DevOps, cloud, containerization, Kubernetes, security, and automation technologies to implement an end-to-end application delivery workflow.
+---
+
+# 🛠️ Technology Stack
+
+The EasyShop platform combines DevOps, cloud, containerization, Kubernetes, security, and automation technologies.
 
 ### ☁️ Cloud & Infrastructure
 
@@ -856,7 +854,7 @@ The EasyShop platform combines modern DevOps, cloud, containerization, Kubernete
 | CLI / Automation | **Linux Shell / kubectl** |
 | Configuration    | **YAML**                  |
 
-### 🚀 DevOps Workflow
+### DevOps Workflow
 
 ```text
 GitHub
@@ -886,7 +884,7 @@ Gmail Notification
 
 * Automated CI/CD using Jenkins.
 * Continuous code-quality analysis with SonarQube.
-* Automated vulnerability and secret scanning with Trivy.
+* Vulnerability and secret scanning with Trivy.
 * Containerized application delivery using Docker.
 * Private container image management through Amazon ECR.
 * Managed Kubernetes deployment using Amazon EKS.
@@ -896,3 +894,287 @@ Gmail Notification
 * Automated CI/CD status notifications through email.
 
 ---
+
+# 📁 Repository Structure
+
+```text
+easyshop-3tier-devsecops/
+│
+├── db/                         # Database-related resources
+├── hpa-demo/                   # HPA demonstration resources
+├── public/                     # Static application assets
+├── screenshots/                # Project and deployment screenshots
+├── scripts/                    # Automation and utility scripts
+├── src/                        # EasyShop application source code
+│
+├── .dockerignore               # Docker build exclusions
+├── .eslintrc.json              # ESLint configuration
+├── .gitignore                  # Git ignore rules
+│
+├── Dockerfile                  # Container image definition
+├── Jenkinsfile                 # Jenkins CI/CD pipeline
+├── LICENSE                     # Project license
+├── README.md                   # Project documentation
+├── about.md                    # Project information
+├── components.json             # UI/component configuration
+│
+├── easyshop-hpa.yaml           # Kubernetes Horizontal Pod Autoscaler
+├── easyshop-ingress.yaml       # Kubernetes Ingress / AWS ALB configuration
+├── easyshop-service.yaml       # Kubernetes Service configuration
+├── k8s-deployment.yaml         # Kubernetes Deployment configuration
+│
+├── ecosystem.config.js         # Application process configuration
+├── next.config.js              # Next.js configuration
+├── package.json                # Application dependencies and scripts
+├── package-lock.json           # Dependency lock file
+├── postcss.config.js           # PostCSS configuration
+├── sonar-project.properties    # SonarQube configuration
+├── tailwind.config.ts          # Tailwind CSS configuration
+└── tsconfig.json               # TypeScript configuration
+```
+
+> **Security note:** Local `.env` files are intentionally not listed as project documentation artifacts. Environment files containing credentials or secrets should remain untracked and should be protected through `.gitignore` and appropriate secret-management practices.
+
+---
+
+# 🔗 Configuration-to-Deployment Mapping
+
+The repository configuration connects application source code, CI/CD automation, security analysis, containerization, and Kubernetes deployment.
+
+| Repository Configuration   | DevOps / AWS Component             | Purpose                                                      |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------ |
+| `Dockerfile`               | Docker                             | Builds the EasyShop container image                          |
+| `Jenkinsfile`              | Jenkins                            | Automates CI/CD pipeline execution                           |
+| `sonar-project.properties` | SonarQube                          | Configures static code-quality analysis                      |
+| Trivy pipeline stage       | Trivy                              | Performs filesystem vulnerability and secret scanning        |
+| `k8s-deployment.yaml`      | Amazon EKS                         | Deploys EasyShop application pods                            |
+| `easyshop-service.yaml`    | Kubernetes Service                 | Provides internal application networking                     |
+| `easyshop-ingress.yaml`    | AWS Load Balancer Controller / ALB | Provides external application routing                        |
+| `easyshop-hpa.yaml`        | Kubernetes HPA                     | Automatically scales application pods                        |
+| `screenshots/`             | Deployment Evidence                | Stores AWS, Jenkins, Kubernetes, and application screenshots |
+
+---
+
+# 🔄 Complete DevSecOps & Infrastructure Flow
+
+The complete workflow connects source code with Jenkins, security tools, Docker, Amazon ECR, Amazon EKS, Kubernetes networking, autoscaling, and the live application.
+
+```text
+                    ┌──────────────────────┐
+                    │   Developer / GitHub │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │  EasyShop Source Code │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │       Jenkins        │
+                    │     CI/CD Pipeline   │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────┴───────────┐
+                    │                      │
+                    ▼                      ▼
+             ┌─────────────┐        ┌─────────────┐
+             │  SonarQube  │        │    Trivy    │
+             │ Code Quality│        │  Security   │
+             │   Analysis  │        │    Scan     │
+             └──────┬──────┘        └──────┬──────┘
+                    │                      │
+                    └──────────┬───────────┘
+                               ▼
+                    ┌──────────────────────┐
+                    │   Docker Image Build │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │      Amazon ECR      │
+                    │  Container Registry  │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │      Amazon EKS      │
+                    │  Kubernetes Cluster  │
+                    └──────────┬───────────┘
+                               │
+                ┌──────────────┼──────────────┐
+                │              │              │
+                ▼              ▼              ▼
+        ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+        │ Deployment  │ │   Service   │ │    HPA      │
+        │    Pods     │ │ Networking  │ │ Auto Scaling│
+        └──────┬──────┘ └─────────────┘ └─────────────┘
+               │
+               ▼
+        ┌─────────────────┐
+        │ Kubernetes      │
+        │ Ingress         │
+        └────────┬────────┘
+                 │
+                 ▼
+        ┌─────────────────┐
+        │     AWS ALB     │
+        │ Application LB  │
+        └────────┬────────┘
+                 │
+                 ▼
+        ┌─────────────────┐
+        │    EasyShop     │
+        │   Live Web App  │
+        └─────────────────┘
+```
+
+---
+
+# 🚀 End-to-End Deployment Workflow
+
+EasyShop follows an automated **DevSecOps CI/CD workflow** integrating source control, code quality analysis, security scanning, containerization, AWS container registry, Kubernetes deployment, load balancing, autoscaling, and notifications.
+
+### Pipeline Execution Stages
+
+| Stage                    | Tool / Service        | Purpose                                                  |
+| ------------------------ | --------------------- | -------------------------------------------------------- |
+| 1. Source Checkout       | GitHub                | Retrieves application source code                        |
+| 2. CI Pipeline           | Jenkins               | Automates the delivery workflow                          |
+| 3. Code Quality          | SonarQube             | Analyzes application code quality                        |
+| 4. Security Scan         | Trivy                 | Scans project filesystem for vulnerabilities and secrets |
+| 5. Container Build       | Docker                | Creates the EasyShop container image                     |
+| 6. Image Registry        | Amazon ECR            | Stores and manages the container image                   |
+| 7. Kubernetes Deployment | Amazon EKS            | Runs the application workloads                           |
+| 8. Service Exposure      | Kubernetes Service    | Provides internal application networking                 |
+| 9. Traffic Routing       | Ingress / AWS ALB     | Routes external traffic                                  |
+| 10. Auto Scaling         | Kubernetes HPA        | Dynamically adjusts application replicas                 |
+| 11. Notification         | Gmail / Jenkins Email | Reports CI/CD execution results                          |
+
+### DevSecOps Integration
+
+```text
+Source Code
+     │
+     ▼
+Jenkins
+     │
+     ├── SonarQube
+     │      └── Code Quality Analysis
+     │
+     └── Trivy
+            └── Filesystem Vulnerability & Secret Scan
+                    │
+                    ▼
+              Docker Image
+                    │
+                    ▼
+                Amazon ECR
+                    │
+                    ▼
+                Amazon EKS
+```
+
+### Kubernetes Deployment Flow
+
+```text
+Amazon EKS
+    │
+    ├── Deployment
+    │      └── EasyShop Pods
+    │
+    ├── Service
+    │      └── Internal Networking
+    │
+    ├── Ingress
+    │      └── External Traffic Routing
+    │
+    └── HPA
+           └── Automatic Pod Scaling
+                    │
+                    ▼
+              AWS Application
+              Load Balancer
+                    │
+                    ▼
+              EasyShop Web App
+```
+
+### Auto Scaling Flow
+
+```text
+Low Traffic
+    │
+    ▼
+Fewer Pods
+    │
+    ▼
+Application Running
+    │
+    ▼
+Increased CPU / Workload
+    │
+    ▼
+HPA Detects Increased Load
+    │
+    ▼
+Additional Pods Created
+    │
+    ▼
+Traffic Distributed Through AWS ALB
+```
+
+### Deployment Validation
+
+The deployment can be validated through:
+
+* Jenkins pipeline execution status
+* SonarQube Quality Gate
+* Trivy security scan results
+* Amazon ECR image availability
+* Amazon EKS cluster status
+* Kubernetes pod status
+* Kubernetes Service status
+* Kubernetes Ingress status
+* AWS ALB availability
+* HPA configuration and runtime status
+* EasyShop live application accessibility
+* Jenkins email notification
+
+---
+
+# 🎯 Final Deployment Result
+
+The completed project demonstrates an end-to-end DevSecOps workflow:
+
+```text
+GitHub
+   ↓
+Jenkins
+   ↓
+SonarQube + Trivy
+   ↓
+Docker
+   ↓
+Amazon ECR
+   ↓
+Amazon EKS
+   ↓
+Kubernetes
+   ↓
+Service + Ingress
+   ↓
+AWS Application Load Balancer
+   ↓
+EasyShop
+   ↓
+HPA Auto Scaling
+   ↓
+Gmail Notification
+```
+
+The project demonstrates practical implementation of:
+
+**Jenkins CI/CD + SonarQube + Trivy + Docker + Amazon ECR + Amazon EKS + Kubernetes + AWS ALB + Ingress + HPA + IAM + Email Notifications**
+
+This project showcases an automated, cloud-native DevSecOps deployment workflow from **source code to a publicly accessible Kubernetes application on AWS**.
