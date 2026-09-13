@@ -796,7 +796,7 @@ The Kubernetes ingress is associated with the AWS Application Load Balancer and 
 The Horizontal Pod Autoscaler is configured for the EasyShop deployment and provides automatic replica scaling based on CPU utilization.
 
 <p align="center">
-  <img src="./screenshots/12-hpa-status.png" alt="EasyShop HPA Validation" width="100%">
+  <img src="./screenshots/12-hpa-status .png" alt="EasyShop HPA Validation" width="100%">
 </p>
 
 ### 🔍 Validation Checks
@@ -813,110 +813,86 @@ The Horizontal Pod Autoscaler is configured for the EasyShop deployment and prov
 
 These checks provide evidence that the EasyShop workload is deployed on Amazon EKS, internally exposed through Kubernetes Service, externally routed through the AWS ALB and Ingress layer, and configured for horizontal scaling.
 
-## 📸 Screenshots Gallery
+## 🛠️ Technology Stack
 
-This section provides a visual overview of the EasyShop DevSecOps and AWS deployment implementation.
+The EasyShop platform combines modern DevOps, cloud, containerization, Kubernetes, security, and automation technologies to implement an end-to-end application delivery workflow.
 
-### 🚀 Application
+### ☁️ Cloud & Infrastructure
 
-<p align="center">
-  <img src="./screenshots/01-easyshop-live.png" alt="EasyShop Live Application" width="100%">
-</p>
+| Category            | Technology                        |
+| ------------------- | --------------------------------- |
+| Cloud Platform      | **Amazon Web Services (AWS)**     |
+| Container Registry  | **Amazon ECR**                    |
+| Kubernetes Platform | **Amazon EKS**                    |
+| Load Balancing      | **AWS Application Load Balancer** |
+| Identity & Access   | **AWS IAM**                       |
+| Region              | **eu-west-1 (Ireland)**           |
 
-<p align="center">
-  <img src="./screenshots/02-easyshop-live.png" alt="EasyShop Live Application" width="100%">
-</p>
+### 🔄 CI/CD & DevSecOps
 
-### 🔄 CI/CD & Code Quality
+| Category          | Technology                |
+| ----------------- | ------------------------- |
+| Source Control    | **Git, GitHub**           |
+| CI/CD Automation  | **Jenkins**               |
+| Code Quality      | **SonarQube**             |
+| Security Scanning | **Trivy**                 |
+| Notifications     | **Gmail / Jenkins Email** |
 
-<p align="center">
-  <img src="./screenshots/03-jenkins-pipeline.png" alt="Jenkins CI/CD Pipeline" width="100%">
-</p>
+### 🐳 Containerization & Kubernetes
 
-<p align="center">
-  <img src="./screenshots/04-sonarqube-dashboard.png" alt="SonarQube Dashboard" width="100%">
-</p>
+| Category              | Technology                          |
+| --------------------- | ----------------------------------- |
+| Containerization      | **Docker**                          |
+| Orchestration         | **Kubernetes**                      |
+| Kubernetes Networking | **Ingress**                         |
+| Service Discovery     | **Kubernetes Services**             |
+| Autoscaling           | **Horizontal Pod Autoscaler (HPA)** |
 
-<p align="center">
-  <img src="./screenshots/05-sonarqube-dashboard.png" alt="SonarQube Dashboard" width="100%">
-</p>
+### 🖥️ Operating Environment
 
-### ☁️ AWS Infrastructure
+| Category         | Technology                |
+| ---------------- | ------------------------- |
+| Operating System | **Ubuntu Linux**          |
+| CLI / Automation | **Linux Shell / kubectl** |
+| Configuration    | **YAML**                  |
 
-<p align="center">
-  <img src="./screenshots/06-ecr-repository.png" alt="Amazon ECR Repository" width="100%">
-</p>
+### 🚀 DevOps Workflow
 
-<p align="center">
-  <img src="./screenshots/07-ecr-images.png" alt="Amazon ECR Container Images" width="100%">
-</p>
+```text
+GitHub
+   ↓
+Jenkins
+   ↓
+SonarQube
+   ↓
+Trivy
+   ↓
+Docker
+   ↓
+Amazon ECR
+   ↓
+Amazon EKS
+   ↓
+Kubernetes
+   ↓
+Ingress + AWS ALB
+   ↓
+HPA
+   ↓
+Gmail Notification
+```
 
-<p align="center">
-  <img src="./screenshots/08-eks-cluster.png" alt="Amazon EKS Cluster" width="100%">
-</p>
+### ✨ Key Capabilities
 
-<p align="center">
-  <img src="./screenshots/09-eks-compute.png" alt="Amazon EKS Compute Resources" width="100%">
-</p>
-
-### 🌐 Networking
-
-<p align="center">
-  <img src="./screenshots/10-aws-alb.png" alt="AWS Application Load Balancer" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/11-kubernetes-ingress.png" alt="Kubernetes Ingress" width="100%">
-</p>
-
-### 📈 Scaling & Security
-
-<p align="center">
-  <img src="./screenshots/12-hpa-status.png" alt="Kubernetes HPA Status" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/13-hpa-details.png" alt="Kubernetes HPA Details" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/14-iam-load-balancer-role.png" alt="AWS IAM Load Balancer Controller Role" width="100%">
-</p>
- 
-<p align="center">
-  <img src="./screenshots/15-iam-eks-cluster-role.png" alt="Amazon EKS Cluster IAM Role" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/16-iam-eks-node-role.png" alt="Amazon EKS Node IAM Role" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/17-trivy-security-scan.png" alt="Trivy Security Scan" width="100%">
-</p>
-
-### 🐳 Containerization & Notifications
-
-<p align="center">
-  <img src="./screenshots/18-docker-build.png" alt="Docker Build" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/19-gmail-notification.png" alt="Jenkins Gmail Notification" width="100%">
-</p>
-
-### ☸️ Kubernetes Validation
-
-<p align="center">
-  <img src="./screenshots/20-kubernetes-workloads.png" alt="Kubernetes Workloads" width="100%">
-</p>
-
-<p align="center">
-  <img src="./screenshots/21-kubernetes-services.png" alt="Kubernetes Services" width="100%">
-</p>
+* Automated CI/CD using Jenkins.
+* Continuous code-quality analysis with SonarQube.
+* Automated vulnerability and secret scanning with Trivy.
+* Containerized application delivery using Docker.
+* Private container image management through Amazon ECR.
+* Managed Kubernetes deployment using Amazon EKS.
+* External application routing using AWS ALB and Kubernetes Ingress.
+* Kubernetes-based horizontal autoscaling using HPA.
+* AWS IAM-based service access control.
+* Automated CI/CD status notifications through email.
 
 ---
-
-
----
-
