@@ -1178,3 +1178,21 @@ The project demonstrates practical implementation of:
 **Jenkins CI/CD + SonarQube + Trivy + Docker + Amazon ECR + Amazon EKS + Kubernetes + AWS ALB + Ingress + HPA + IAM + Email Notifications**
 
 This project showcases an automated, cloud-native DevSecOps deployment workflow from **source code to a publicly accessible Kubernetes application on AWS**.
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## 👨‍💻 Author
+
+**Prasad Jadhav**
+
+DevOps & Cloud Engineer — Fresher
+
+* GitHub: https://github.com/prasads-3
+* LinkedIn: https://www.linkedin.com/in/prasad-jadhav-19a35b413
+
+---
+
+⭐ If you found this project useful, feel free to star the repository.
+
